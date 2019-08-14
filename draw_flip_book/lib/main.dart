@@ -2,14 +2,16 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-void main() => runApp(new MyApp());
+import 'flip_book_painter.dart';
 
-class MyApp extends StatelessWidget {
+void main() => runApp(new FlipBookApp());
+
+class FlipBookApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Draw and Flip',
       theme: new ThemeData(
         // This is the theme of your application.
         //
@@ -21,13 +23,13 @@ class MyApp extends StatelessWidget {
         // counter didn't reset back to zero; the application is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      home: new FlipBookPage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class FlipBookPage extends StatefulWidget {
+  FlipBookPage({Key key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -41,10 +43,10 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  _FlipBookPageState createState() => new _FlipBookPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _FlipBookPageState extends State<FlipBookPage> {
   final _offsets = <Offset>[];
 
   @override
@@ -68,7 +70,8 @@ class _MyHomePageState extends State<MyHomePage> {
         onPanUpdate: (details) {
           setState(() {
             final renderBox = context.findRenderObject() as RenderBox;
-            final localPosition = renderBox.globalToLocal(details.globalPosition);
+            final localPosition =
+                renderBox.globalToLocal(details.globalPosition);
             print("localPosition: $localPosition");
             _offsets.add(localPosition);
           });
@@ -79,42 +82,19 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         },
         child: Center(
-            child: CustomPaint(
-                painter: FlipBookPainter(_offsets),
-                child: Container(
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.width,
-                ))),
+          child: buildCustomPaint(context),
+        ),
       ),
     );
   }
-}
 
-class FlipBookPainter extends CustomPainter {
-  final offsets;
-
-  FlipBookPainter(this.offsets) : super();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.deepPurple
-      ..isAntiAlias = true
-      ..strokeWidth = 6.0;
-
-    for (var i = 0; i < offsets.length; i++) {
-      if (offsets[i] != null && offsets[i + 1] != null) {
-        canvas.drawLine(
-            offsets[i],
-            offsets[i + 1],
-            paint
-        );
-      } else if (offsets[i] != null && offsets[i + 1] == null) {
-        canvas.drawPoints(PointMode.points, [offsets[i]], paint);
-      }
-    }
+  CustomPaint buildCustomPaint(BuildContext context) {
+    return CustomPaint(
+      painter: FlipBookPainter(_offsets),
+      child: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
