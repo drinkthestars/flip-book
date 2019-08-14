@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,10 @@ import 'package:flutter/material.dart';
 import 'flip_book_painter.dart';
 
 void main() => runApp(new FlipBookApp());
+
+const _FADE_DURATION = 50;
+const double _FRAME_TOP = 100;
+const double _SIZE = 300;
 
 class FlipBookApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -47,7 +52,24 @@ class FlipBookPage extends StatefulWidget {
 }
 
 class _FlipBookPageState extends State<FlipBookPage> {
-  final _offsets = <Offset>[];
+  int currentFrame = 3;
+  StrokeCap strokeCap = StrokeCap.round;
+
+  // TODO: Generalize/Scale
+  bool _isVisible2 = true;
+  bool _isVisible3 = true;
+  bool _replayFramesInReverse = false;
+
+  // TODO: Generalize/Scale into lists of List<Offset>
+  List<Offset> points1 = List();
+  List<Offset> points2 = List();
+  List<Offset> points3 = List();
+
+  // TODO: Generalize/Scale
+  // For accessing the RenderBos of each frame
+  GlobalKey key3 = GlobalKey();
+  GlobalKey key2 = GlobalKey();
+  GlobalKey key1 = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -59,37 +81,46 @@ class _FlipBookPageState extends State<FlipBookPage> {
     // than having to individually change instances of widgets.
     return new Scaffold(
       body: buildGestureDetector(
-          context,
-          buildCustomPaint(context)
+        context,
+        Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            // TODO: Generalize/Scale
+            _buildPositionedFrame(
+                context, key1, points1, true, Colors.green),
+            _buildPositionedFrame(
+                context, key2, points2, _isVisible2, Colors.lightBlue),
+            _buildPositionedFrame(
+                context, key3, points3, _isVisible3, Colors.amberAccent),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            setState(() {
+              _toggleFramesVisibility();
+            });
+          },
+          child: Icon(Icons.skip_next)
       ),
     );
   }
 
-  GestureDetector buildGestureDetector(
-      BuildContext context,
-      Widget child
-  ) {
+  GestureDetector buildGestureDetector(BuildContext context, Widget child) {
     return GestureDetector(
       onPanDown: (details) {
-        final renderBox = context.findRenderObject() as RenderBox;
-        final localPosition = renderBox.globalToLocal(details.globalPosition);
-        print("localPosition: $localPosition");
         setState(() {
-          _offsets.add(localPosition);
+          _addPointsForCurrentFrame(details.globalPosition);
         });
       },
       onPanUpdate: (details) {
         setState(() {
-          final renderBox = context.findRenderObject() as RenderBox;
-          final localPosition =
-              renderBox.globalToLocal(details.globalPosition);
-          print("localPosition: $localPosition");
-          _offsets.add(localPosition);
+          _addPointsForCurrentFrame(details.globalPosition);
         });
       },
       onPanEnd: (details) {
         setState(() {
-          _offsets.add(null);
+          _getPointsForFrame(currentFrame)..add(null);
         });
       },
       child: Center(
@@ -98,12 +129,85 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  CustomPaint buildCustomPaint(BuildContext context) {
+  void _toggleFramesVisibility() {
+    if (_replayFramesInReverse) {
+      if (!_isVisible2) {
+        _isVisible2 = true;
+        currentFrame = 2;
+      } else if (!_isVisible3) {
+        _isVisible3 = true;
+        _replayFramesInReverse = false;
+        currentFrame = 3;
+      }
+    } else {
+      if (_isVisible3) {
+        _isVisible3 = false;
+        currentFrame = 2;
+      } else if (_isVisible2) {
+        _isVisible2 = false;
+        currentFrame = 1;
+        _replayFramesInReverse = true;
+      }
+    }
+  }
+
+  void _addPointsForCurrentFrame(Offset globalPosition) {
+    final RenderBox renderBox =
+        _getWidgetKeyForFrame(currentFrame).currentContext.findRenderObject();
+    final offset = renderBox.globalToLocal(globalPosition);
+
+    _getPointsForFrame(currentFrame)
+      ..add(offset);
+  }
+
+  List<Offset> _getPointsForFrame(int card) {
+    if (card == 1)
+      return points1;
+    else if (card == 2)
+      return points2;
+    else
+      return points3;
+  }
+
+  GlobalKey _getWidgetKeyForFrame(int card) {
+    if (card == 1)
+      return key1;
+    else if (card == 2)
+      return key2;
+    else
+      return key3;
+  }
+
+  Positioned _buildPositionedFrame(BuildContext context, GlobalKey key,
+      List<Offset> points, bool isVisible, Color color) {
+    return Positioned(
+      top: _FRAME_TOP,
+      child: AnimatedOpacity(
+        opacity: isVisible ? 1.0 : 0.0,
+        duration: Duration(milliseconds: _FADE_DURATION),
+        child: Container(
+          key: key,
+          width: _SIZE,
+          height: _SIZE,
+          color: color,
+          child: FittedBox(
+            child: SizedBox(
+              child: _buildCustomPaint(context, points),
+              width: _SIZE,
+              height: _SIZE,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  CustomPaint _buildCustomPaint(BuildContext context, List<Offset> points) {
     return CustomPaint(
-      painter: FlipBookPainter(_offsets),
+      painter: FlipBookPainter(points),
       child: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
+        height: _SIZE,
+        width: _SIZE,
       ),
     );
   }

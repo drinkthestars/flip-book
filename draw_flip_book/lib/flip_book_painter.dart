@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+// TODO: Ensure this paints only within bounds of parent
 class FlipBookPainter extends CustomPainter {
   final offsets;
 
