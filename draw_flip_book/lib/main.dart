@@ -58,32 +58,42 @@ class _FlipBookPageState extends State<FlipBookPage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return new Scaffold(
-      body: GestureDetector(
-        onPanDown: (details) {
+      body: buildGestureDetector(
+          context,
+          buildCustomPaint(context)
+      ),
+    );
+  }
+
+  GestureDetector buildGestureDetector(
+      BuildContext context,
+      Widget child
+  ) {
+    return GestureDetector(
+      onPanDown: (details) {
+        final renderBox = context.findRenderObject() as RenderBox;
+        final localPosition = renderBox.globalToLocal(details.globalPosition);
+        print("localPosition: $localPosition");
+        setState(() {
+          _offsets.add(localPosition);
+        });
+      },
+      onPanUpdate: (details) {
+        setState(() {
           final renderBox = context.findRenderObject() as RenderBox;
-          final localPosition = renderBox.globalToLocal(details.globalPosition);
+          final localPosition =
+              renderBox.globalToLocal(details.globalPosition);
           print("localPosition: $localPosition");
-          setState(() {
-            _offsets.add(localPosition);
-          });
-        },
-        onPanUpdate: (details) {
-          setState(() {
-            final renderBox = context.findRenderObject() as RenderBox;
-            final localPosition =
-                renderBox.globalToLocal(details.globalPosition);
-            print("localPosition: $localPosition");
-            _offsets.add(localPosition);
-          });
-        },
-        onPanEnd: (details) {
-          setState(() {
-            _offsets.add(null);
-          });
-        },
-        child: Center(
-          child: buildCustomPaint(context),
-        ),
+          _offsets.add(localPosition);
+        });
+      },
+      onPanEnd: (details) {
+        setState(() {
+          _offsets.add(null);
+        });
+      },
+      child: Center(
+        child: child,
       ),
     );
   }
