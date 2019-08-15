@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,7 +6,7 @@ import 'flip_book_painter.dart';
 
 void main() => runApp(new FlipBookApp());
 
-const _FADE_DURATION = 50;
+const _FADE_DURATION = 20;
 const double _FRAME_TOP = 100;
 const double _SIZE = 300;
 
@@ -58,7 +57,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
   // TODO: Generalize/Scale
   bool _isVisible2 = true;
   bool _isVisible3 = true;
-  bool _replayFramesInReverse = false;
+  bool _replayFrames = false;
 
   // TODO: Generalize/Scale into lists of List<Offset>
   List<Offset> points1 = List();
@@ -86,8 +85,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
           alignment: Alignment.center,
           children: <Widget>[
             // TODO: Generalize/Scale
-            _buildPositionedFrame(
-                context, key1, points1, true, Colors.green),
+            _buildPositionedFrame(context, key1, points1, true, Colors.green),
             _buildPositionedFrame(
                 context, key2, points2, _isVisible2, Colors.lightBlue),
             _buildPositionedFrame(
@@ -101,8 +99,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
               _toggleFramesVisibility();
             });
           },
-          child: Icon(Icons.skip_next)
-      ),
+          child: Icon(Icons.skip_next)),
     );
   }
 
@@ -130,23 +127,21 @@ class _FlipBookPageState extends State<FlipBookPage> {
   }
 
   void _toggleFramesVisibility() {
-    if (_replayFramesInReverse) {
-      if (!_isVisible2) {
-        _isVisible2 = true;
-        currentFrame = 2;
-      } else if (!_isVisible3) {
-        _isVisible3 = true;
-        _replayFramesInReverse = false;
+    if (_replayFrames) {
+      if (currentFrame == 1) {
         currentFrame = 3;
+        _isVisible3 = true;
+        _replayFrames = false;
       }
     } else {
-      if (_isVisible3) {
-        _isVisible3 = false;
+      if (currentFrame == 3) {
         currentFrame = 2;
-      } else if (_isVisible2) {
-        _isVisible2 = false;
+        _isVisible2 = true;
+        _isVisible3 = false;
+      } else if (currentFrame == 2) {
         currentFrame = 1;
-        _replayFramesInReverse = true;
+        _isVisible2 = false;
+        _replayFrames = true;
       }
     }
   }
@@ -156,8 +151,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
         _getWidgetKeyForFrame(currentFrame).currentContext.findRenderObject();
     final offset = renderBox.globalToLocal(globalPosition);
 
-    _getPointsForFrame(currentFrame)
-      ..add(offset);
+    _getPointsForFrame(currentFrame)..add(offset);
   }
 
   List<Offset> _getPointsForFrame(int card) {
@@ -192,7 +186,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
           color: color,
           child: FittedBox(
             child: SizedBox(
-              child: _buildCustomPaint(context, points),
+              child: ClipRect(child: _buildCustomPaint(context, points)),
               width: _SIZE,
               height: _SIZE,
             ),

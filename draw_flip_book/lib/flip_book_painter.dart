@@ -1,10 +1,10 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-// TODO: Ensure this paints only within bounds of parent
 class FlipBookPainter extends CustomPainter {
-  final offsets;
+  final List<Offset> offsets;
 
   FlipBookPainter(this.offsets) : super();
 
@@ -16,17 +16,17 @@ class FlipBookPainter extends CustomPainter {
       ..strokeWidth = 6.0;
 
     for (var i = 0; i < offsets.length; i++) {
-      if (offsets[i] != null && offsets[i + 1] != null) {
-        canvas.drawLine(
-            offsets[i],
-            offsets[i + 1],
-            paint
-        );
-      } else if (offsets[i] != null && offsets[i + 1] == null) {
+      if (shouldDrawLine(i)) {
+        canvas.drawLine(offsets[i], offsets[i + 1], paint);
+      } else if (shouldDrawPoint(i)) {
         canvas.drawPoints(PointMode.points, [offsets[i]], paint);
       }
     }
   }
+
+  bool shouldDrawPoint(int i) => offsets[i] != null && offsets[i + 1] == null;
+
+  bool shouldDrawLine(int i) => offsets[i] != null && offsets[i + 1] != null;
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
