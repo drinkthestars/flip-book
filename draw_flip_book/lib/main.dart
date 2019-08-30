@@ -100,7 +100,6 @@ class _FlipBookPageState extends State<FlipBookPage> {
   }
 
   Widget _buttonRow() {
-
     final nextFrameButton = Container(
       child: FloatingActionButton(
         onPressed: () {
@@ -134,7 +133,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
         child: Icon(Icons.clear),
       ),
     );
-    
+
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -146,19 +145,17 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  Widget _framesStack(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: <Widget>[
-        // TODO: Generalize/Scale
-        _buildPositionedFrame(context, key1, points1, true, Colors.green),
-        _buildPositionedFrame(
-            context, key2, points2, _isVisible2, Colors.lightBlue),
-        _buildPositionedFrame(
-            context, key3, points3, _isVisible3, Colors.amberAccent),
-      ],
-    );
-  }
+  Widget _framesStack(BuildContext context) => Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          // TODO: Generalize/Scale
+          _buildPositionedFrame(context, key1, points1, true, Colors.green),
+          _buildPositionedFrame(
+              context, key2, points2, _isVisible2, Colors.lightBlue),
+          _buildPositionedFrame(
+              context, key3, points3, _isVisible3, Colors.amberAccent),
+        ],
+      );
 
   Widget _buildGestureDetector(BuildContext context, Widget child) {
     return GestureDetector(
