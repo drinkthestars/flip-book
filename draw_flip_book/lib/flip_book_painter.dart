@@ -24,9 +24,9 @@ class FlipBookPainter extends CustomPainter {
     }
   }
 
-  bool shouldDrawPoint(int i) => offsets[i] != null && offsets[i + 1] == null;
+  bool shouldDrawPoint(int i) => offsets[i] != null && offsets.length > i + 1 && offsets[i + 1] == null;
 
-  bool shouldDrawLine(int i) => offsets[i] != null && offsets[i + 1] != null;
+  bool shouldDrawLine(int i) => offsets[i] != null && offsets.length > i + 1 && offsets[i + 1] != null;
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
