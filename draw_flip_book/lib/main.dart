@@ -51,10 +51,6 @@ class FlipBookPage extends StatefulWidget {
 
 class _FlipBookPageState extends State<FlipBookPage>
     with TickerProviderStateMixin {
-  Animation<double> animation1;
-  Animation<double> animation2;
-  Animation<double> animation3;
-  Animation<double> animation4;
   AnimationController controller;
 
   int currentFrame = 1;
@@ -89,7 +85,6 @@ class _FlipBookPageState extends State<FlipBookPage>
   void initState() {
     super.initState();
     _buildAnimationController();
-    _buildAnimations();
   }
 
   @override
@@ -340,13 +335,13 @@ class _FlipBookPageState extends State<FlipBookPage>
   double _getFrameOpacity(int card, bool isVisible) {
     if (_isAnimating) {
       if (card == 1)
-        return animation1.value;
+        return controller.value >= 0.0 ? 1.0 : 0.0;
       else if (card == 2)
-        return animation2.value;
+        return controller.value >= 0.25 ? 1.0 : 0.0;
       else if (card == 3)
-        return animation3.value;
+        return controller.value >= 0.5  ? 1.0 : 0.0;
       else
-        return animation4.value;
+        return controller.value >= 0.75 ? 1.0 : 0.0;
     } else {
       return isVisible ? maxFrameOpacity : 0.0;
     }
@@ -383,52 +378,5 @@ class _FlipBookPageState extends State<FlipBookPage>
           _isAnimating = true;
         }
       });
-  }
-
-  void _buildAnimations() {
-    // TODO: Generalize/Scale for more than 4 frames
-    animation1 = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Interval(
-          0.0,
-          0.25,
-          curve: Curves.linear,
-        ),
-      ),
-    );
-
-    animation2 = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Interval(
-          0.25,
-          0.50,
-          curve: Curves.linear,
-        ),
-      ),
-    );
-
-    animation3 = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Interval(
-          0.50,
-          0.75,
-          curve: Curves.linear,
-        ),
-      ),
-    );
-
-    animation4 = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Interval(
-          0.75,
-          1.0,
-          curve: Curves.linear,
-        ),
-      ),
-    );
   }
 }
