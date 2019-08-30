@@ -65,7 +65,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
   List<Offset> points3 = List();
 
   // TODO: Generalize/Scale
-  // For accessing the RenderBos of each frame
+  // For accessing the RenderBox of each frame
   GlobalKey key3 = GlobalKey();
   GlobalKey key2 = GlobalKey();
   GlobalKey key1 = GlobalKey();
@@ -78,32 +78,86 @@ class _FlipBookPageState extends State<FlipBookPage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return new Scaffold(
-      body: buildGestureDetector(
+    return Scaffold(
+      body: _buildGestureDetector(
         context,
-        Stack(
-          alignment: Alignment.center,
-          children: <Widget>[
-            // TODO: Generalize/Scale
-            _buildPositionedFrame(context, key1, points1, true, Colors.green),
-            _buildPositionedFrame(
-                context, key2, points2, _isVisible2, Colors.lightBlue),
-            _buildPositionedFrame(
-                context, key3, points3, _isVisible3, Colors.amberAccent),
-          ],
+        Container(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                height: 500,
+                child: _framesStack(context),
+              ),
+              Expanded(
+                child: Container(child: _buttonRow()),
+              )
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _toggleFramesVisibility();
-            });
-          },
-          child: Icon(Icons.skip_next)),
     );
   }
 
-  GestureDetector buildGestureDetector(BuildContext context, Widget child) {
+  Widget _buttonRow() {
+    final nextFrameButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _toggleFramesVisibility();
+          });
+        },
+        child: Icon(Icons.navigate_next),
+      ),
+    );
+    final playButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            // TODO: loop all the frames in sequence
+          });
+        },
+        child: Icon(Icons.play_arrow),
+      ),
+    );
+    final clearFramesButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _clear();
+            currentFrame = 3;
+            _isVisible3 = true;
+            _replayFrames = false;
+          });
+        },
+        child: Icon(Icons.clear),
+      ),
+    );
+
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        nextFrameButton,
+        playButton,
+        clearFramesButton,
+      ],
+    );
+  }
+
+  Widget _framesStack(BuildContext context) => Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          // TODO: Generalize/Scale
+          _buildPositionedFrame(context, key1, points1, true, Colors.green),
+          _buildPositionedFrame(
+              context, key2, points2, _isVisible2, Colors.lightBlue),
+          _buildPositionedFrame(
+              context, key3, points3, _isVisible3, Colors.amberAccent),
+        ],
+      );
+
+  Widget _buildGestureDetector(BuildContext context, Widget child) {
     return GestureDetector(
       onPanDown: (details) {
         setState(() {
@@ -172,7 +226,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
       return key3;
   }
 
-  Positioned _buildPositionedFrame(BuildContext context, GlobalKey key,
+  Widget _buildPositionedFrame(BuildContext context, GlobalKey key,
       List<Offset> points, bool isVisible, Color color) {
     return Positioned(
       top: _FRAME_TOP,
@@ -196,7 +250,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  CustomPaint _buildCustomPaint(BuildContext context, List<Offset> points) {
+  Widget _buildCustomPaint(BuildContext context, List<Offset> points) {
     return CustomPaint(
       painter: FlipBookPainter(points),
       child: Container(
@@ -204,5 +258,11 @@ class _FlipBookPageState extends State<FlipBookPage> {
         width: _SIZE,
       ),
     );
+  }
+
+  void _clear() {
+    points1.clear();
+    points2.clear();
+    points3.clear();
   }
 }

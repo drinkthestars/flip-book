@@ -1,6 +1,6 @@
 # Draw a Flip Book
 
-This is a project with [@maryx](https://github.com/maryx)!
+This is a project coded during [The Boring Development Show, Episode 28](https://www.youtube.com/watch?v=yyHhloFMNNA) with [@maryx](https://github.com/maryx)!
 
 The current version looks like this:
 
