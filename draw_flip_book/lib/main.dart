@@ -78,7 +78,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return new Scaffold(
+    return Scaffold(
       body: _buildGestureDetector(
         context,
         Container(
@@ -99,7 +99,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  Row _buttonRow() {
+  Widget _buttonRow() {
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -141,7 +141,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  Stack _framesStack(BuildContext context) {
+  Widget _framesStack(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -155,7 +155,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  GestureDetector _buildGestureDetector(BuildContext context, Widget child) {
+  Widget _buildGestureDetector(BuildContext context, Widget child) {
     return GestureDetector(
       onPanDown: (details) {
         setState(() {
@@ -224,7 +224,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
       return key3;
   }
 
-  Positioned _buildPositionedFrame(BuildContext context, GlobalKey key,
+  Widget _buildPositionedFrame(BuildContext context, GlobalKey key,
       List<Offset> points, bool isVisible, Color color) {
     return Positioned(
       top: _FRAME_TOP,
@@ -248,7 +248,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  CustomPaint _buildCustomPaint(BuildContext context, List<Offset> points) {
+  Widget _buildCustomPaint(BuildContext context, List<Offset> points) {
     return CustomPaint(
       painter: FlipBookPainter(points),
       child: Container(
