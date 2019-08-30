@@ -100,43 +100,48 @@ class _FlipBookPageState extends State<FlipBookPage> {
   }
 
   Widget _buttonRow() {
+
+    final nextFrameButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _toggleFramesVisibility();
+          });
+        },
+        child: Icon(Icons.navigate_next),
+      ),
+    );
+    final playButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            // TODO: loop all the frames in sequence
+          });
+        },
+        child: Icon(Icons.play_arrow),
+      ),
+    );
+    final clearFramesButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _clear();
+            currentFrame = 3;
+            _isVisible3 = true;
+            _replayFrames = false;
+          });
+        },
+        child: Icon(Icons.clear),
+      ),
+    );
+    
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        Container(
-          child: FloatingActionButton(
-            onPressed: () {
-              setState(() {
-                _toggleFramesVisibility();
-              });
-            },
-            child: Icon(Icons.navigate_next),
-          ),
-        ),
-        Container(
-          child: FloatingActionButton(
-            onPressed: () {
-              setState(() {
-                // TODO: loop all the frames in sequence
-              });
-            },
-            child: Icon(Icons.play_arrow),
-          ),
-        ),
-        Container(
-          child: FloatingActionButton(
-            onPressed: () {
-              setState(() {
-                _clear();
-                currentFrame = 3;
-                _isVisible3 = true;
-                _replayFrames = false;
-              });
-            },
-            child: Icon(Icons.clear),
-          ),
-        ),
+        nextFrameButton,
+        playButton,
+        clearFramesButton,
       ],
     );
   }
