@@ -6,7 +6,6 @@ import 'flip_book_painter.dart';
 
 void main() => runApp(new FlipBookApp());
 
-const _FADE_DURATION = 20;
 const double _FRAME_TOP = 100;
 const double _SIZE = 300;
 
@@ -50,15 +49,26 @@ class FlipBookPage extends StatefulWidget {
   _FlipBookPageState createState() => new _FlipBookPageState();
 }
 
-class _FlipBookPageState extends State<FlipBookPage> {
+class _FlipBookPageState extends State<FlipBookPage>
+    with TickerProviderStateMixin {
+  Animation<double> animation1;
+  Animation<double> animation2;
+  Animation<double> animation3;
+  Animation<double> animation4;
+  AnimationController controller;
+
   int currentFrame = 1;
   StrokeCap strokeCap = StrokeCap.round;
-  double maxFrameOpacity = 0.7;
 
   // TODO: Generalize/Scale
   bool _isVisible1 = true;
   bool _isVisible2 = false;
   bool _isVisible3 = false;
+  bool _isVisible4 = false;
+
+  bool _isAnimating = false;
+
+  double maxFrameOpacity = 0.7;
 
   bool _replayFrames = false;
 
@@ -66,12 +76,27 @@ class _FlipBookPageState extends State<FlipBookPage> {
   List<Offset> points1 = List();
   List<Offset> points2 = List();
   List<Offset> points3 = List();
+  List<Offset> points4 = List();
 
   // TODO: Generalize/Scale
   // For accessing the RenderBox of each frame
-  GlobalKey key3 = GlobalKey();
-  GlobalKey key2 = GlobalKey();
   GlobalKey key1 = GlobalKey();
+  GlobalKey key2 = GlobalKey();
+  GlobalKey key3 = GlobalKey();
+  GlobalKey key4 = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _buildAnimationController();
+    _buildAnimations();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,24 +142,36 @@ class _FlipBookPageState extends State<FlipBookPage> {
       child: FloatingActionButton(
         onPressed: () {
           setState(() {
-            // TODO: loop all the frames in sequence
+            _startAnimation();
           });
         },
         child: Icon(Icons.play_arrow),
       ),
     );
+    final stopButton = Container(
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            // Add "null" to the points to avoid a line being drawn upon
+            // post animation paint attempts
+            points1..add(null);
+            points2..add(null);
+            points3..add(null);
+            points4..add(null);
+
+            _stopAnimation();
+          });
+        },
+        child: Icon(Icons.stop),
+      ),
+    );
+
     final clearFramesButton = Container(
       child: FloatingActionButton(
         onPressed: () {
           setState(() {
-            _clear();
-            currentFrame = 1;
-
-            _isVisible1 = true;
-            _isVisible2 = false;
-            _isVisible3 = false;
-
-            _replayFrames = false;
+            _clearPoints();
+            _stopAnimation();
           });
         },
         child: Icon(Icons.clear),
@@ -147,9 +184,28 @@ class _FlipBookPageState extends State<FlipBookPage> {
       children: <Widget>[
         nextFrameButton,
         playButton,
+        stopButton,
         clearFramesButton,
       ],
     );
+  }
+
+  void _stopAnimation() {
+    controller.stop();
+    controller.value = 0.0;
+    _resetVisibleFrames();
+    _isAnimating = false;
+  }
+
+  void _resetVisibleFrames() {
+    currentFrame = 1;
+
+    _isVisible1 = true;
+    _isVisible2 = false;
+    _isVisible3 = false;
+    _isVisible4 = false;
+
+    _replayFrames = false;
   }
 
   Widget _framesStack(BuildContext context) => Stack(
@@ -157,11 +213,13 @@ class _FlipBookPageState extends State<FlipBookPage> {
         children: <Widget>[
           // TODO: Generalize/Scale
           _buildPositionedFrame(
-              context, key1, points1, _isVisible1, Colors.white),
+              context, key1, points1, _isVisible1, Colors.white, 1),
           _buildPositionedFrame(
-              context, key2, points2, _isVisible2, Colors.white),
+              context, key2, points2, _isVisible2, Colors.white, 2),
           _buildPositionedFrame(
-              context, key3, points3, _isVisible3, Colors.white),
+              context, key3, points3, _isVisible3, Colors.white, 3),
+          _buildPositionedFrame(
+              context, key4, points4, _isVisible4, Colors.white, 4),
         ],
       );
 
@@ -190,14 +248,8 @@ class _FlipBookPageState extends State<FlipBookPage> {
 
   void _toggleFramesVisibility() {
     if (_replayFrames) {
-      if (currentFrame == 3) {
-        currentFrame = 1;
-
-        _isVisible1 = true;
-        _isVisible2 = false;
-        _isVisible3 = false;
-
-        _replayFrames = false;
+      if (currentFrame == 4) {
+        _resetVisibleFrames();
       }
     } else {
       if (currentFrame == 1) {
@@ -210,6 +262,13 @@ class _FlipBookPageState extends State<FlipBookPage> {
         _isVisible1 = true;
         _isVisible2 = true;
         _isVisible3 = true;
+        _isVisible4 = false;
+      } else if (currentFrame == 3) {
+        currentFrame = 4;
+        _isVisible1 = true;
+        _isVisible2 = true;
+        _isVisible3 = true;
+        _isVisible4 = true;
         _replayFrames = true;
       }
     }
@@ -228,8 +287,10 @@ class _FlipBookPageState extends State<FlipBookPage> {
       return points1;
     else if (card == 2)
       return points2;
-    else
+    else if (card == 3)
       return points3;
+    else
+      return points4;
   }
 
   GlobalKey _getWidgetKeyForFrame(int card) {
@@ -237,17 +298,18 @@ class _FlipBookPageState extends State<FlipBookPage> {
       return key1;
     else if (card == 2)
       return key2;
-    else
+    else if (card == 3)
       return key3;
+    else
+      return key4;
   }
 
   Widget _buildPositionedFrame(BuildContext context, GlobalKey key,
-      List<Offset> points, bool isVisible, Color color) {
+      List<Offset> points, bool isVisible, Color color, int card) {
     return Positioned(
       top: _FRAME_TOP,
-      child: AnimatedOpacity(
-        opacity: isVisible ? maxFrameOpacity : 0.0,
-        duration: Duration(milliseconds: _FADE_DURATION),
+      child: Opacity(
+        opacity: _getFrameOpacity(card, isVisible),
         child: Container(
           key: key,
           width: _SIZE,
@@ -275,9 +337,98 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  void _clear() {
+  double _getFrameOpacity(int card, bool isVisible) {
+    if (_isAnimating) {
+      if (card == 1)
+        return animation1.value;
+      else if (card == 2)
+        return animation2.value;
+      else if (card == 3)
+        return animation3.value;
+      else
+        return animation4.value;
+    } else {
+      return isVisible ? maxFrameOpacity : 0.0;
+    }
+  }
+
+  void _clearPoints() {
     points1.clear();
     points2.clear();
     points3.clear();
+    points4.clear();
+  }
+
+  Future _startAnimation() async {
+    try {
+      await controller.forward().orCancel;
+      await controller.repeat().orCancel;
+    } on TickerCanceled {}
+  }
+
+  void _buildAnimationController() {
+    controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() {
+            _isAnimating = false;
+          });
+        } else if (status == AnimationStatus.forward) {
+          _isAnimating = true;
+        }
+      });
+  }
+
+  void _buildAnimations() {
+    // TODO: Generalize/Scale for more than 4 frames
+    animation1 = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.0,
+          0.25,
+          curve: Curves.linear,
+        ),
+      ),
+    );
+
+    animation2 = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.25,
+          0.50,
+          curve: Curves.linear,
+        ),
+      ),
+    );
+
+    animation3 = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.50,
+          0.75,
+          curve: Curves.linear,
+        ),
+      ),
+    );
+
+    animation4 = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.75,
+          1.0,
+          curve: Curves.linear,
+        ),
+      ),
+    );
   }
 }
