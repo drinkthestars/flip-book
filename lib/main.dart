@@ -4,80 +4,50 @@ import 'package:flutter/material.dart';
 
 import 'flip_book_painter.dart';
 
-void main() => runApp(new FlipBookApp());
+void main() => runApp(FlipBookApp());
 
-const _FADE_DURATION = 20;
-const double _FRAME_TOP = 100;
-const double _SIZE = 300;
+const _fadeDuration = Duration(milliseconds: 20);
+const _frameTop = 100.0;
+const _size = 300.0;
 
 class FlipBookApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       title: 'Draw and Flip',
-      theme: new ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: new FlipBookPage(title: 'Flutter Demo Home Page'),
+      home: FlipBookPage(),
     );
   }
 }
 
 class FlipBookPage extends StatefulWidget {
-  FlipBookPage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const FlipBookPage();
 
   @override
-  _FlipBookPageState createState() => new _FlipBookPageState();
+  _FlipBookPageState createState() => _FlipBookPageState();
 }
 
 class _FlipBookPageState extends State<FlipBookPage> {
-  int currentFrame = 3;
-  StrokeCap strokeCap = StrokeCap.round;
+  int _currentFrame = 3;
 
   // TODO: Generalize/Scale
   bool _isVisible2 = true;
   bool _isVisible3 = true;
   bool _replayFrames = false;
 
-  // TODO: Generalize/Scale into lists of List<Offset>
-  List<Offset> points1 = List();
-  List<Offset> points2 = List();
-  List<Offset> points3 = List();
+  // TODO: Generalize/Scale into lists of <Offset>[]
+  final points1 = <Offset>[];
+  final points2 = <Offset>[];
+  final points3 = <Offset>[];
 
   // TODO: Generalize/Scale
   // For accessing the RenderBox of each frame
-  GlobalKey key3 = GlobalKey();
-  GlobalKey key2 = GlobalKey();
-  GlobalKey key1 = GlobalKey();
+  final key3 = GlobalKey();
+  final key2 = GlobalKey();
+  final key1 = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       body: _buildGestureDetector(
         context,
@@ -125,7 +95,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
         onPressed: () {
           setState(() {
             _clear();
-            currentFrame = 3;
+            _currentFrame = 3;
             _isVisible3 = true;
             _replayFrames = false;
           });
@@ -171,7 +141,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
       },
       onPanEnd: (details) {
         setState(() {
-          _getPointsForFrame(currentFrame)..add(null);
+          _getPointsForFrame(_currentFrame).add(null);
         });
       },
       child: Center(
@@ -182,18 +152,18 @@ class _FlipBookPageState extends State<FlipBookPage> {
 
   void _toggleFramesVisibility() {
     if (_replayFrames) {
-      if (currentFrame == 1) {
-        currentFrame = 3;
+      if (_currentFrame == 1) {
+        _currentFrame = 3;
         _isVisible3 = true;
         _replayFrames = false;
       }
     } else {
-      if (currentFrame == 3) {
-        currentFrame = 2;
+      if (_currentFrame == 3) {
+        _currentFrame = 2;
         _isVisible2 = true;
         _isVisible3 = false;
-      } else if (currentFrame == 2) {
-        currentFrame = 1;
+      } else if (_currentFrame == 2) {
+        _currentFrame = 1;
         _isVisible2 = false;
         _replayFrames = true;
       }
@@ -202,10 +172,10 @@ class _FlipBookPageState extends State<FlipBookPage> {
 
   void _addPointsForCurrentFrame(Offset globalPosition) {
     final RenderBox renderBox =
-        _getWidgetKeyForFrame(currentFrame).currentContext.findRenderObject();
+        _getWidgetKeyForFrame(_currentFrame).currentContext.findRenderObject();
     final offset = renderBox.globalToLocal(globalPosition);
 
-    _getPointsForFrame(currentFrame)..add(offset);
+    _getPointsForFrame(_currentFrame)..add(offset);
   }
 
   List<Offset> _getPointsForFrame(int card) {
@@ -229,20 +199,20 @@ class _FlipBookPageState extends State<FlipBookPage> {
   Widget _buildPositionedFrame(BuildContext context, GlobalKey key,
       List<Offset> points, bool isVisible, Color color) {
     return Positioned(
-      top: _FRAME_TOP,
+      top: _frameTop,
       child: AnimatedOpacity(
-        opacity: isVisible ? 1.0 : 0.0,
-        duration: Duration(milliseconds: _FADE_DURATION),
+        opacity: isVisible ? 1 : 0,
+        duration: _fadeDuration,
         child: Container(
           key: key,
-          width: _SIZE,
-          height: _SIZE,
+          width: _size,
+          height: _size,
           color: color,
           child: FittedBox(
             child: SizedBox(
               child: ClipRect(child: _buildCustomPaint(context, points)),
-              width: _SIZE,
-              height: _SIZE,
+              width: _size,
+              height: _size,
             ),
           ),
         ),
@@ -250,15 +220,14 @@ class _FlipBookPageState extends State<FlipBookPage> {
     );
   }
 
-  Widget _buildCustomPaint(BuildContext context, List<Offset> points) {
-    return CustomPaint(
-      painter: FlipBookPainter(points),
-      child: Container(
-        height: _SIZE,
-        width: _SIZE,
-      ),
-    );
-  }
+  Widget _buildCustomPaint(BuildContext context, List<Offset> points) =>
+      CustomPaint(
+        painter: FlipBookPainter(points),
+        child: Container(
+          height: _size,
+          width: _size,
+        ),
+      );
 
   void _clear() {
     points1.clear();
