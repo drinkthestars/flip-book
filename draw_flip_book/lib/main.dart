@@ -51,12 +51,15 @@ class FlipBookPage extends StatefulWidget {
 }
 
 class _FlipBookPageState extends State<FlipBookPage> {
-  int currentFrame = 3;
+  int currentFrame = 1;
   StrokeCap strokeCap = StrokeCap.round;
+  double maxFrameOpacity = 0.7;
 
   // TODO: Generalize/Scale
-  bool _isVisible2 = true;
-  bool _isVisible3 = true;
+  bool _isVisible1 = true;
+  bool _isVisible2 = false;
+  bool _isVisible3 = false;
+
   bool _replayFrames = false;
 
   // TODO: Generalize/Scale into lists of List<Offset>
@@ -125,8 +128,12 @@ class _FlipBookPageState extends State<FlipBookPage> {
         onPressed: () {
           setState(() {
             _clear();
-            currentFrame = 3;
-            _isVisible3 = true;
+            currentFrame = 1;
+
+            _isVisible1 = true;
+            _isVisible2 = false;
+            _isVisible3 = false;
+
             _replayFrames = false;
           });
         },
@@ -149,11 +156,12 @@ class _FlipBookPageState extends State<FlipBookPage> {
         alignment: Alignment.center,
         children: <Widget>[
           // TODO: Generalize/Scale
-          _buildPositionedFrame(context, key1, points1, true, Colors.green),
           _buildPositionedFrame(
-              context, key2, points2, _isVisible2, Colors.lightBlue),
+              context, key1, points1, _isVisible1, Colors.white),
           _buildPositionedFrame(
-              context, key3, points3, _isVisible3, Colors.amberAccent),
+              context, key2, points2, _isVisible2, Colors.white),
+          _buildPositionedFrame(
+              context, key3, points3, _isVisible3, Colors.white),
         ],
       );
 
@@ -182,19 +190,26 @@ class _FlipBookPageState extends State<FlipBookPage> {
 
   void _toggleFramesVisibility() {
     if (_replayFrames) {
-      if (currentFrame == 1) {
-        currentFrame = 3;
-        _isVisible3 = true;
+      if (currentFrame == 3) {
+        currentFrame = 1;
+
+        _isVisible1 = true;
+        _isVisible2 = false;
+        _isVisible3 = false;
+
         _replayFrames = false;
       }
     } else {
-      if (currentFrame == 3) {
+      if (currentFrame == 1) {
         currentFrame = 2;
+        _isVisible1 = true;
         _isVisible2 = true;
         _isVisible3 = false;
       } else if (currentFrame == 2) {
-        currentFrame = 1;
-        _isVisible2 = false;
+        currentFrame = 3;
+        _isVisible1 = true;
+        _isVisible2 = true;
+        _isVisible3 = true;
         _replayFrames = true;
       }
     }
@@ -231,7 +246,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
     return Positioned(
       top: _FRAME_TOP,
       child: AnimatedOpacity(
-        opacity: isVisible ? 1.0 : 0.0,
+        opacity: isVisible ? maxFrameOpacity : 0.0,
         duration: Duration(milliseconds: _FADE_DURATION),
         child: Container(
           key: key,
