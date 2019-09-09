@@ -4,52 +4,29 @@ import 'package:flutter/material.dart';
 
 import 'flip_book_painter.dart';
 
-void main() => runApp(new FlipBookApp());
+void main() => runApp(FlipBookApp());
 
-const double _FRAME_TOP = 100;
-const double _FRAME_SIZE = 300;
-const double _FRAME_STACK_HEIGHT = 500;
-const _FRAME_COLOR = Colors.white;
-const _FRAMES_ANIMATION_DURATION = 1000;
+const _frameTop = 100.0;
+const _frameSize = 300.0;
+const _frameStackHeight = 500.0;
+const _frameColor = Colors.white;
+const _framesAnimationDuration = Duration(milliseconds: 1000);
 
 class FlipBookApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       title: 'Draw and Flip',
-      theme: new ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: new FlipBookPage(title: 'Flutter Demo Home Page'),
+      home: FlipBookPage(),
     );
   }
 }
 
 class FlipBookPage extends StatefulWidget {
-  FlipBookPage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const FlipBookPage();
 
   @override
-  _FlipBookPageState createState() => new _FlipBookPageState();
+  _FlipBookPageState createState() => _FlipBookPageState();
 }
 
 class _FlipBookPageState extends State<FlipBookPage>
@@ -68,18 +45,18 @@ class _FlipBookPageState extends State<FlipBookPage>
   bool _replayFrames = false;
   double _maxFrameOpacityDuringNoAnimation = 0.7;
 
-  // TODO: Generalize/Scale into lists of List<Offset>
-  List<Offset> _points0 = List();
-  List<Offset> _points1 = List();
-  List<Offset> _points2 = List();
-  List<Offset> _points3 = List();
+  // TODO: Generalize/Scale into lists of <Offset>[]
+  final _points0 = <Offset>[];
+  final _points1 = <Offset>[];
+  final _points2 = <Offset>[];
+  final _points3 = <Offset>[];
 
   // TODO: Generalize/Scale
   // For accessing the RenderBox of each frame
-  GlobalKey _frame0Key = GlobalKey();
-  GlobalKey _frame1Key = GlobalKey();
-  GlobalKey _frame2Key = GlobalKey();
-  GlobalKey _frame3Key = GlobalKey();
+  final _frame0Key = GlobalKey();
+  final _frame1Key = GlobalKey();
+  final _frame2Key = GlobalKey();
+  final _frame3Key = GlobalKey();
 
   @override
   void initState() {
@@ -95,12 +72,6 @@ class _FlipBookPageState extends State<FlipBookPage>
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       body: _buildGestureDetector(
         context,
@@ -109,7 +80,7 @@ class _FlipBookPageState extends State<FlipBookPage>
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Container(
-                height: _FRAME_STACK_HEIGHT,
+                height: _frameStackHeight,
                 child: _framesStack(context),
               ),
               Expanded(
@@ -322,19 +293,19 @@ class _FlipBookPageState extends State<FlipBookPage>
       bool isVisible,
       int frameIndex}) {
     return Positioned(
-      top: _FRAME_TOP,
+      top: _frameTop,
       child: Opacity(
         opacity: _getFrameOpacity(frameIndex, isVisible),
         child: Container(
           key: frameKey,
-          width: _FRAME_SIZE,
-          height: _FRAME_SIZE,
-          color: _FRAME_COLOR,
+          width: _frameSize,
+          height: _frameSize,
+          color: _frameColor,
           child: FittedBox(
             child: SizedBox(
               child: ClipRect(child: _buildCustomPaint(context, points)),
-              width: _FRAME_SIZE,
-              height: _FRAME_SIZE,
+              width: _frameSize,
+              height: _frameSize,
             ),
           ),
         ),
@@ -342,15 +313,14 @@ class _FlipBookPageState extends State<FlipBookPage>
     );
   }
 
-  Widget _buildCustomPaint(BuildContext context, List<Offset> points) {
-    return CustomPaint(
-      painter: FlipBookPainter(points),
-      child: Container(
-        height: _FRAME_SIZE,
-        width: _FRAME_SIZE,
-      ),
-    );
-  }
+  Widget _buildCustomPaint(BuildContext context, List<Offset> points) =>
+      CustomPaint(
+        painter: FlipBookPainter(points),
+        child: Container(
+          height: _frameSize,
+          width: _frameSize,
+        ),
+      );
 
   double _getFrameOpacity(int frameIndex, bool isVisible) {
     if (_isAnimating) {
@@ -385,7 +355,7 @@ class _FlipBookPageState extends State<FlipBookPage>
 
   void _buildAnimationController() {
     _controller = AnimationController(
-      duration: const Duration(milliseconds: _FRAMES_ANIMATION_DURATION),
+      duration: _framesAnimationDuration,
       vsync: this,
     )
       ..addListener(() {
